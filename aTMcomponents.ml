@@ -49,19 +49,33 @@ let initialize (lst: account_spec list) : unit =
    and reading an id from stdin. *)
   let acquire_id () : id =
     Printf.printf "Enter customer id: " ;
-    read_int ()
+    read_int () ;
 
 (* acquire_amount () -- Requests from the ATM customer and returns an
    amount by prompting for an amount and reading an int from stdin. *)
 let acquire_amount () : int =
   Printf.printf "Enter amount: ";
-  read_int()
-;;
+  read_int();
 
 (* acquire_act () -- Requests from the user and returns an action to
    be performed, as a value of type action *)
-val acquire_act : unit -> action ;;
+  let acquire_act (): action =
+    printf "Enter action: (B) Balance (-) Withdraw (+) Deposit (=) Done (X) Exit :";
+    let s = read_line () in
+    match s with
+    | "B" -> Balance
+  | "-" -> Withdraw
+  | "+" -> Deposit
+  | "=" -> Done
+  | "X" -> Finished;
 
+(* Possible actions that an ATM customer can perform *)
+type action =
+  | Balance           (* balance inquiry *)
+  | Withdraw of int   (* withdraw an amount *)
+  | Deposit of int    (* deposit an amount *)
+  | Next              (* finish this customer and move on to the next one *)
+  | Finished          (* shut down the ATM and exit entirely *)
 (*....................................................................
   Querying and updating the account database
 
