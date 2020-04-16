@@ -38,7 +38,7 @@ type account_spec = {name : string; id : id; balance : int} ;;
    name, aribtrary id, and balance. The names and balances are
    initialized as per the `accts` provided. *)
 let initialize (lst: account_spec list) : unit =
-  ();
+  ()
 
 (*....................................................................
  Acquiring information from the customer
@@ -49,13 +49,13 @@ let initialize (lst: account_spec list) : unit =
    and reading an id from stdin. *)
   let acquire_id () : id =
     Printf.printf "Enter customer id: " ;
-    read_int () ;
+    read_int ()  ;;
 
 (* acquire_amount () -- Requests from the ATM customer and returns an
    amount by prompting for an amount and reading an int from stdin. *)
 let acquire_amount () : int =
   Printf.printf "Enter amount: ";
-  read_int();
+  read_int() ;;
 
 (* acquire_act () -- Requests from the user and returns an action to
    be performed, as a value of type action *)
@@ -64,10 +64,11 @@ let acquire_amount () : int =
     let s = read_line () in
     match s with
     | "B" -> Balance
-  | "-" -> Withdraw
-  | "+" -> Deposit
-  | "=" -> Done
-  | "X" -> Finished;
+    | "-" -> let a = acquire_amount () in Withdraw a
+    | "+" -> let a = acquire_amount () in Deposit a
+    | "=" -> Next
+    | "X" -> Finished
+    | _ -> raise (Invalid_argument "Enter valid input") ;;
 
 (* Possible actions that an ATM customer can perform *)
 type action =
