@@ -12,6 +12,8 @@ of accounts, each with an id number, a customer name, and a current
 balance.
  *)
 
+
+
 open Printf
 
 (* Customer account identifiers *)
@@ -26,6 +28,38 @@ type action =
   | Finished          (* shut down the ATM and exit entirely *)
 ;;
 
+
+class type account =
+  object
+    method get_balance : int
+    method get_name : string
+    method get_id : id
+    method update_balance : int -> unit
+  end ;;
+
+
+
+class atm_account (n : string) (id_num : id) (b : int) : account =
+  object (this)
+    val name = n
+    val id = id_num
+    val mutable balance = b
+
+
+    method get_balance : int =
+      balance
+
+    method get_name : string =
+      name
+
+    method get_id : int =
+      id
+
+    method update_balance (new_balance : int) : unit =
+      balance <- new_balance
+
+end ;;
+
 (*....................................................................
  Initializing database of accounts
 *)
@@ -37,8 +71,17 @@ type account_spec = {name : string; id : id; balance : int} ;;
 (* initialize accts -- Establishes a database of accounts, each with a
    name, aribtrary id, and balance. The names and balances are
    initialized as per the `accts` provided. *)
+<<<<<<< HEAD
 let initialize (lst: account_spec list) : unit =
   ()
+=======
+let rec initialize (lst: account_spec list) : unit =
+  let account_db = ref [] in
+  match lst with
+  | [] -> ()
+  | h :: t -> account_db := !account_db @ [new atm_account h.name h.id h.balance]; initialize t
+;;
+>>>>>>> 7f7a0e7fdfa8cdef6b0855f2b4dd1d0c467b1c10
 
 (*....................................................................
  Acquiring information from the customer
