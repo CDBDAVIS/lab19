@@ -71,10 +71,11 @@ type account_spec = {name : string; id : id; balance : int} ;;
 (* initialize accts -- Establishes a database of accounts, each with a
    name, aribtrary id, and balance. The names and balances are
    initialized as per the `accts` provided. *)
-let initialize (lst: account_spec list) : unit =
+let rec initialize (lst: account_spec list) : unit =
+  let account_db = ref [] in
   match lst with
   | [] -> ()
-  | h :: t -> new atm_account h h.name h.id h.balance
+  | h :: t -> account_db := !account_db @ [new atm_account h.name h.id h.balance]; initialize t
 ;;
 
 (*....................................................................
