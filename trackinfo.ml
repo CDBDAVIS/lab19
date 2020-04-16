@@ -11,9 +11,10 @@ type action =
 
 class type account =
   object
-    method get_balance : unit -> int
-    method get_name : unit -> string
-    method get_id : unit -> id
+    method get_balance : int
+    method get_name : string
+    method get_id : id
+    method update_balance : int -> unit
   end ;;
 
 
@@ -25,14 +26,18 @@ class type account =
       val mutable balance = b
 
 
-      method get_balance : unit -> int =
+      method get_balance : int =
         balance
 
-      method get_name : unit -> string =
+      method get_name : string =
         name
 
-      method get_id : unit -> int =
+      method get_id : int =
         id
+
+      method update_balance (new_balance : int) : unit =
+        balance <- new_balance
+
 
 
 
