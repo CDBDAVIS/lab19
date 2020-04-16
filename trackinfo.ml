@@ -11,18 +11,29 @@ type action =
 
 class type account =
   object
-    method get_balance : unit : int
-    method get_name : unit : string
-    method get_id : unit : id
+    method get_balance : unit -> int
+    method get_name : unit -> string
+    method get_id : unit -> id
   end ;;
 
 
 
-  class atm_account (n : string) (id_num : id) (b : int) : shape =
+  class atm_account (n : string) (id_num : id) (b : int) : account =
     object (this)
-      val mutable name = n
-      val mutable id_num = id
+      val name = n
+      val id = id_num
       val mutable balance = b
+
+
+      method get_balance : unit -> int =
+        balance
+
+      method get_name : unit -> string =
+        name
+
+      method get_id : unit -> int =
+        id
+
 
 
 
