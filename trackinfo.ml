@@ -11,15 +11,18 @@ type action =
 
 class type account =
   object
-    method name : string
-    method id : id
-    method balance : int
+    method
+    method
+    method
   end ;;
 
 
 
-  class atm_account  =
+  class atm_account (n : string) (id_num : id) (b : int) : shape =
     object (this)
+      val mutable name = n
+      val mutable id_num = id
+      val mutable balance = b
 
 
 
