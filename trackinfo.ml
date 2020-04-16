@@ -11,9 +11,9 @@ type action =
 
 class type account =
   object
-    method
-    method
-    method
+    method get_balance : unit : int
+    method get_name : unit : string
+    method get_id : unit : id
   end ;;
 
 
