@@ -1,6 +1,4 @@
 
-type id = int
-
 
 type id = int ;;
 
