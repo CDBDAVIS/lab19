@@ -14,7 +14,10 @@ balance.
 
 
 
-open Printf
+open Printf ;;
+open Scanf ;;
+
+module DB = Database ;;
 
 (* Customer account identifiers *)
 type id = int
@@ -29,37 +32,6 @@ type action =
 ;;
 
 
-class type account =
-  object
-    method get_balance : int
-    method get_name : string
-    method get_id : id
-    method update_balance : int -> unit
-  end ;;
-
-
-
-class atm_account (n : string) (id_num : id) (b : int) : account =
-  object (this)
-    val name = n
-    val id = id_num
-    val mutable balance = b
-
-
-    method get_balance : int =
-      balance
-
-    method get_name : string =
-      name
-
-    method get_id : int =
-      id
-
-    method update_balance (new_balance : int) : unit =
-      balance <- new_balance
-
-end ;;
-
 (*....................................................................
  Initializing database of accounts
 *)
@@ -71,17 +43,13 @@ type account_spec = {name : string; id : id; balance : int} ;;
 (* initialize accts -- Establishes a database of accounts, each with a
    name, aribtrary id, and balance. The names and balances are
    initialized as per the `accts` provided. *)
-<<<<<<< HEAD
-let initialize (lst: account_spec list) : unit =
-  ()
-=======
-let rec initialize (lst: account_spec list) : unit =
-  let account_db = ref [] in
-  match lst with
-  | [] -> ()
-  | h :: t -> account_db := !account_db @ [new atm_account h.name h.id h.balance]; initialize t
-;;
->>>>>>> 7f7a0e7fdfa8cdef6b0855f2b4dd1d0c467b1c10
+
+let initialize (initial : account_spec list) : unit =
+  initial
+  |> List.iter (fun {name; id; balance}
+                -> DB.create id name;
+                   DB.update id balance) ;;
+
 
 (*....................................................................
  Acquiring information from the customer
@@ -90,36 +58,43 @@ let rec initialize (lst: account_spec list) : unit =
 (* acquire_id () -- Requests from the ATM customer and returns an id
    (akin to entering one's ATM card), by prompting for an id number
    and reading an id from stdin. *)
-  let acquire_id () : id =
-    Printf.printf "Enter customer id: " ;
-    read_int ()  ;;
+  let rec acquire_id () : id =
+    printf "Enter customer id: ";
+    try
+      let id = read_int () in
+      ignore (DB.exists id); id
+    with
+    | Not_found
+    | Failure _ -> printf "Invalid id \n";
+                   acquire_id () ;;
 
 (* acquire_amount () -- Requests from the ATM customer and returns an
    amount by prompting for an amount and reading an int from stdin. *)
-let acquire_amount () : int =
-  Printf.printf "Enter amount: ";
-  read_int() ;;
+let rec acquire_amount () : int =
+  printf "Enter amount: ";
+  try
+    let amount = read_int () in
+    if amount <= 0 then raise (Failure "amount is non-positive");
+    amount
+  with
+  | Failure _ -> printf "Invalid amount \n";
+                 acquire_amount () ;;
+
 
 (* acquire_act () -- Requests from the user and returns an action to
    be performed, as a value of type action *)
-  let acquire_act (): action =
-    printf "Enter action: (B) Balance (-) Withdraw (+) Deposit (=) Done (X) Exit :";
-    let s = read_line () in
-    match s with
-    | "B" -> Balance
-    | "-" -> let a = acquire_amount () in Withdraw a
-    | "+" -> let a = acquire_amount () in Deposit a
-    | "=" -> Next
-    | "X" -> Finished
-    | _ -> raise (Invalid_argument "Enter valid input") ;;
-
-(* Possible actions that an ATM customer can perform *)
-type action =
-  | Balance           (* balance inquiry *)
-  | Withdraw of int   (* withdraw an amount *)
-  | Deposit of int    (* deposit an amount *)
-  | Next              (* finish this customer and move on to the next one *)
-  | Finished          (* shut down the ATM and exit entirely *)
+let rec acquire_act () : action =
+  printf "Enter action: (B) Balance (-) Withdraw (+) Deposit \
+          (=) Done (X) Exit: %!";
+  scanf " %c"
+        (fun char -> match char with
+                     | 'b' | 'B'        -> Balance
+                     | '/' | 'x' | 'X'  -> Finished
+                     | '='              -> Next
+                     | 'w' | 'W' | '-'  -> Withdraw (acquire_amount ())
+                     | 'd' | 'D' | '+'  -> Deposit (acquire_amount ())
+                     | _                -> printf "  invalid choice\n";
+                                           acquire_act () ) ;;
 (*....................................................................
   Querying and updating the account database
 
@@ -129,15 +104,11 @@ type action =
 
 (* get_balance id -- Returns the balance for the customer account with
    the given id. *)
-val get_balance : id -> int ;;
+let get_balance : id -> int = DB.balance ;;
 
-(* get_name id -- Returns the name associated with the customer
-   account with the given id. *)
-val get_name : id -> string ;;
+let get_name : id -> string = DB.name ;;
 
-(* update_balance id amount -- Modifies the balance of the customer
-   account with the given id,setting it to the given amount. *)
-val update_balance : id -> int -> unit ;;
+let update_balance : id -> int -> unit = DB.update ;;
 
 (*....................................................................
   Presenting information and cash to the customer
@@ -145,9 +116,17 @@ val update_balance : id -> int -> unit ;;
 
 (* present_message message -- Presents to the customer (on stdout) the
    given message followed by a newline. *)
-val present_message : string -> unit ;;
+let present_message (msg : string) : unit =
+  printf "%s\n%!" msg ;;
 
 (* deliver_cash amount -- Dispenses the given amount of cash to the
    customer (really just prints to stdout a message to that
    effect). *)
-val deliver_cash : int -> unit ;;
+let deliver_cash (amount : int) : unit =
+  printf "Here's your cash: ";
+  (* dispense some "20's" *)
+  for _i = 1 to (amount / 20) do
+    printf "[20 @ 20]"
+  done;
+  (* dispense the rest of the cash *)
+  printf " and %d more\n" (amount mod 20) ;;
